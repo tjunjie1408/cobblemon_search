@@ -112,4 +112,5 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000)) # Render 会提供 $PORT 环境变量
     print(f"启动 FastAPI 服务器，在端口 {port} 上...")
     # 监听 0.0.0.0 才能让 Render 访问
-    uvicorn.run("api:app", host="0.0.0.0", port=port, reload=True)
+
+    uvicorn.run("api:app", host="0.0.0.0", port=port)
