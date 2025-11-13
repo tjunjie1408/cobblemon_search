@@ -79,9 +79,10 @@ try:
             
             # 执行批量插入
             conn.execute(text(f"""
-                INSERT INTO {TABLE_NAME} (id, pokemon_name, features, generation, bucket, level_min, data)
-                VALUES (:id, :pokemon_name, :features, :generation, :bucket, :level_min, :data)
-            """), insert_data)
+            INSERT INTO {TABLE_NAME} (id, pokemon_name, features, generation, bucket, level_min, data)
+            VALUES (:id, :pokemon_name, :features, :generation, :bucket, :level_min, :data)
+            ON CONFLICT (id) DO NOTHING
+        """), insert_data)
             
             print(f"已插入 {i + len(batch)} / {len(documents)} 条...")
 
@@ -102,5 +103,6 @@ except Exception as e:
     print(f"\n!! 发生错误: {e} !!")
 
     sys.exit(1) # 退出并导致 build 失败
+
 
 
