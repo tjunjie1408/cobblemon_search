@@ -10,7 +10,7 @@ print("--- Render 部署脚本 (Postgres版) 启动 ---")
 # Render 会自动提供这个 'DATABASE_URL'
 # !! 注意：我们使用的是 'DATABASE_URL'，而不是 'INTERNAL_CONNECTION_URL' !!
 # Render 的 build 过程可能无法访问 "Internal" URL
-DATABASE_URL = os.environ.get('postgresql://cobblemon_db_user:xzNcuiu5XdVwo2MLQlbQEVnzetk9wb9b@dpg-d4apcrogjchc73f1nmp0-a/cobblemon_db')
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if not DATABASE_URL:
     print("!! 错误: 未能在环境变量中找到 'DATABASE_URL' !!")
@@ -102,3 +102,4 @@ except Exception as e:
     print(f"\n!! 发生错误: {e} !!")
 
     sys.exit(1) # 退出并导致 build 失败
+
