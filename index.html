@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cobblemon 宝可梦高级搜索</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f7f6; color: #333;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        h1 { color: #1a535c; }
+        #search-container {
+            width: 100%; max-width: 800px;
+            background: #fff; padding: 20px;
+            border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex; gap: 10px; margin-bottom: 15px;
+        }
+        .input-group label {
+            font-weight: 600; margin-bottom: 5px; display: block;
+        }
+        .input-wrapper { flex: 1; }
+        #search-box, .filter-select {
+            width: 100%; padding: 12px 15px; font-size: 16px;
+            border: 2px solid #ddd; border-radius: 8px;
+            box-sizing: border-box; background-color: #fdfdfd;
+        }
+        #results-container { width: 100%; max-width: 800px; }
+        #status { color: #888; margin-top: 10px; min-height: 1.2em; }
+        .result-item {
+            background-color: #ffffff; border: 1px solid #e0e0e0;
+            border-radius: 8px; padding: 15px;
+            margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex; gap: 15px;
+        }
+        .result-item img {
+            width: 64px; height: 64px;
+            background: #f0f0f0; border-radius: 5px;
+            image-rendering: pixelated; /* 保持像素风 */
+            align-self: flex-start; /* 图像顶部对齐 */
+        }
+        .result-content { flex: 1; }
+        .result-item h3 {
+            margin-top: 0; margin-bottom: 10px; color: #0056b3;
+            font-size: 1.2em;
+        }
+        .result-item strong {
+            background-color: #fff3cd; color: #664d03;
+            padding: 2px; border-radius: 3px;
+        }
+        .details { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.9em; }
+        .detail-tag {
+            padding: 4px 8px; border-radius: 4px; background-color: #eee;
+        }
+        
+        /* --- 颜色分类 --- */
+        .detail-tag.type { background-color: #d1e7fd; color: #052c65; }
+        .detail-tag.gen { background-color: #d0f0c0; color: #205020; }
+        .detail-tag.bucket { background-color: #f8d7da; color: #58151c; }
+        
+        /* !! 新增 Biome 样式 !! */
+        .detail-tag.biome { 
+            background-color: #cff4fc; 
+            color: #084298; 
+            margin-top: 4px; /* 让地形标签在新行显示 */
+        }
+        .biomes-container { /* 新增一个容器来管理换行 */
+            width: 100%;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 0.9em;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Cobblemon 宝可梦高级搜索</h1>
+
+    <div id="search-container">
+        <div class="input-group">
+            <div class="input-wrapper" style="flex-grow: 2;">
+                <label for="search-box">搜索宝可梦</label>
+                <input type="text" id="search-box" placeholder="输入宝可梦名称 (例如 'pikachu')">
+            </div>
+            <div class="input-wrapper">
+                <label for="filter-type">属性 (Type)</label>
+                <select id="filter-type" class="filter-select">
+                    <option value="">所有属性</option>
+                    <option value="type_normal">一般 (Normal)</option>
+                    <option value="type_fire">火 (Fire)</option>
+                    <option value="type_water">水 (Water)</option>
+                    <option value="type_grass">草 (Grass)</option>
+                    <option value="type_electric">电 (Electric)</option>
+                    <option value="type_ice">冰 (Ice)</option>
+                    <option value="type_fighting">格斗 (Fighting)</option>
+                    <option value="type_poison">毒 (Poison)</option>
+                    <option value="type_ground">地面 (Ground)</option>
+                    <option value="type_flying">飞行 (Flying)</option>
+                    <option value="type_psychic">超能力 (Psychic)</option>
+                    <option value="type_bug">虫 (Bug)</option>
+                    <option value="type_rock">岩石 (Rock)</option>
+                    <option value="type_ghost">幽灵 (Ghost)</option>
+                    <option value="type_dragon">龙 (Dragon)</option>
+                    <option value="type_dark">恶 (Dark)</option>
+                    <option value="type_steel">钢 (Steel)</option>
+                    <option value="type_fairy">妖精 (Fairy)</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-group">
+            <div class="input-wrapper">
+                <label for="filter-gen">世代 (Generation)</label>
+                <select id="filter-gen" class="filter-select">
+                    <option value="">所有世代</option>
+                    <option value="1">Gen 1</option>
+                    <option value="2">Gen 2</option>
+                    <option value="3">Gen 3</option>
+                    <option value="4">Gen 4</option>
+                    <option value="5">Gen 5</option>
+                    <option value="6">Gen 6</option>
+                    <option value="7">Gen 7</option>
+                    <option value="8">Gen 8</option>
+                    <option value="9">Gen 9</option>
+                </select>
+            </div>
+            <div class="input-wrapper">
+                <label for="filter-bucket">稀有度 (Bucket)</label>
+                <select id="filter-bucket" class="filter-select">
+                    <option value="">所有稀有度</option>
+                    <option value="common">Common</option>
+                    <option value="uncommon">Uncommon</option>
+                    <option value="rare">Rare</option>
+                    <option value="ultra-rare">Ultra-Rare</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="status">输入以开始搜索...</div>
+
+    <div id="results-container">
+        </div>
+
+    <script>
+        // --- JavaScript 交互 ---
+
+        const API_URL = 'http://127.0.0.1:8000/search'; // 你的 FastAPI 后端地址
+        
+        // 获取所有输入元素 (不变)
+        const searchBox = document.getElementById('search-box');
+        const typeFilter = document.getElementById('filter-type');
+        const genFilter = document.getElementById('filter-gen');
+        const bucketFilter = document.getElementById('filter-bucket');
+        const resultsContainer = document.getElementById('results-container');
+        const status = document.getElementById('status');
+        let searchTimeout;
+
+        // 监听所有输入框的变化 (不变)
+        [searchBox, typeFilter, genFilter, bucketFilter].forEach(element => {
+            element.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(performSearch, 300);
+            });
+        });
+
+        // 执行搜索的函数 (不变)
+        async function performSearch() {
+            const query = searchBox.value;
+            const type = typeFilter.value;
+            const gen = genFilter.value;
+            const bucket = bucketFilter.value;
+
+            if (!query && !type && !gen && !bucket) {
+                resultsContainer.innerHTML = '';
+                status.textContent = '输入以开始搜索...';
+                return;
+            }
+            status.textContent = '正在搜索...';
+
+            const params = new URLSearchParams();
+            if (query) params.append('q', query);
+            if (type) params.append('type', type);
+            if (gen) params.append('gen', gen);
+            if (bucket) params.append('bucket', bucket);
+
+            try {
+                const response = await fetch(`${API_URL}?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error(`API 请求失败，状态: ${response.status}`);
+                }
+                const data = await response.json();
+                displayResults(data, query);
+            } catch (error) {
+                console.error('搜索时发生错误:', error);
+                status.textContent = '❌ 连接服务器失败。';
+                resultsContainer.innerHTML = '<p style="color: red;">无法连接到后端 API (api.py)。请确保它正在运行。</p>';
+            }
+        }
+
+        // --- !! 升级版的 displayResults 函数 !! ---
+        function displayResults(data, query) {
+            resultsContainer.innerHTML = ''; // 清空旧结果
+
+            if (data.hits.length === 0) {
+                status.textContent = `没有找到匹配的结果。`;
+                return;
+            }
+
+            status.textContent = `找到了 ${data.nbHits} 条相关规则 (显示 ${data.hits.length} 条)，耗时 ${data.processingTimeMs} 毫秒。`;
+
+            // 遍历每一条结果并创建 HTML
+            data.hits.forEach(hit => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+
+                // 宝可梦名字 (高亮)
+                const pokemonName = (hit._formatted && hit._formatted['species.name']) ? hit._formatted['species.name'] : (hit.species.name || hit.pokemon);
+                
+                // 宝可梦图片
+                const dexNumber = (hit.species.number || 0).toString().padStart(3, '0');
+                const imageUrl = `https://assets.pokemon.com/assets/cms2/img/pokedex/full/${dexNumber}.png`;
+                
+                // 提取属性
+                const types = (hit.features || [])
+                    .filter(f => f.startsWith('type_'))
+                    .map(f => f.replace('type_', ''))
+                    .map(t => `<span class="detail-tag type">${t}</span>`)
+                    .join(' ');
+                
+                // 其他详情
+                const gen = `<span class="detail-tag gen">Gen ${hit.species.generation || '?'}</span>`;
+                const bucket = `<span class="detail-tag bucket">${hit.bucket}</span>`;
+                const level = `<span class="detail-tag">Lv. ${hit.level_min}-${hit.level_max}</span>`;
+
+                // --- !! 新增地形 (Biomes) 处理 !! ---
+                let biomesHtml = '';
+                // 确保 hit.condition 存在，并且 biomes 数组不是空的
+                if (hit.condition && hit.condition.biomes && hit.condition.biomes.length > 0) {
+                    const biomesList = hit.condition.biomes
+                        .map(b => `<span class="detail-tag biome">${b}</span>`)
+                        .join(' ');
+                    
+                    biomesHtml = `<div class="biomes-container">
+                                    <strong>生成地形:</strong> ${biomesList}
+                                  </div>`;
+                }
+                // --- !! 结束新增 !! ---
+
+                // --- !! 更新 innerHTML 模板 !! ---
+                item.innerHTML = `
+                    <img src="${imageUrl}" alt="${pokemonName}" title="${pokemonName} (#${dexNumber})">
+                    <div class="result-content">
+                        <h3>${pokemonName} <span style="color: #777; font-weight: 400; font-size: 0.8em;">(ID: ${hit.id})</span></h3>
+                        <div class="details">
+                            ${gen}
+                            ${types}
+                            ${bucket}
+                            ${level}
+                        </div>
+                        ${biomesHtml} </div>
+                `;
+                resultsContainer.appendChild(item);
+            });
+        }
+        
+        // 页面加载时自动触发一次空搜索
+        performSearch();
+    </script>
+
+</body>
+</html>
